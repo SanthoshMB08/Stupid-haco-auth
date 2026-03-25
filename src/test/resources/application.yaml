@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  mail:
+    host: localhost
+    port: 2525
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: never
+
+app:
+  jwt:
+    secret: test-secret-test-secret-test-secret-123456
+    expiration-minutes: 60
+  google:
+    client-id: test-client-id
+  password-reset:
+    otp-expiration-minutes: 10
+    otp-verified-window-minutes: 10
+    mail-from: no-reply@example.com

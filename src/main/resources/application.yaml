@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: register
+  datasource:
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.wugfqelxdrukgvfbeeuj.supabase.co:5432/postgres}
+    username: ${SUPABASE_DB_USERNAME:postgres}
+    password: ${SUPABASE_DB_PASSWORD:Patner@apps}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:santhoshmb08@gmail.com}
+    password: ${MAIL_PASSWORD:ykvv oyrl kgae gqfu}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  error:
+    include-message: always
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:K77mP25vQx9nRjL4wYhB6dZcF8sNgAeT0uXpW3iMoC5}
+    expiration-minutes: ${APP_JWT_EXPIRATION_MINUTES:1440}
+ 
+  password-reset:
+    otp-expiration-minutes: ${APP_PASSWORD_RESET_OTP_EXPIRATION_MINUTES:10}
+    otp-verified-window-minutes: ${APP_PASSWORD_RESET_VERIFIED_WINDOW_MINUTES:10}
+    mail-from: ${APP_PASSWORD_RESET_MAIL_FROM:${MAIL_USERNAME:no-reply@example.com}}
