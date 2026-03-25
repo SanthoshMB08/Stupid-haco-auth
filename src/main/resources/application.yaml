@@ -2,9 +2,9 @@ spring:
   application:
     name: register
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.wugfqelxdrukgvfbeeuj.supabase.co:5432/postgres}
-    username: ${SUPABASE_DB_USERNAME:postgres}
-    password: ${SUPABASE_DB_PASSWORD:Patner@apps}
+    url: ${SUPABASE_DB_URL}
+    username: ${SUPABASE_DB_USERNAME}
+    password: ${SUPABASE_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
