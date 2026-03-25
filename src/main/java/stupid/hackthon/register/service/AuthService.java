@@ -1,8 +1,5 @@
 package stupid.hackthon.register.service;
 
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +12,7 @@ import stupid.hackthon.register.domain.AuthProvider;
 import stupid.hackthon.register.domain.User;
 import stupid.hackthon.register.config.AppProperties;
 import stupid.hackthon.register.dto.AuthResponse;
+import stupid.hackthon.register.dto.FunLoginResponse;
 
 import stupid.hackthon.register.dto.LoginRequest;
 import stupid.hackthon.register.dto.MessageResponse;
@@ -37,7 +35,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
     private final EmailService emailService;
@@ -46,7 +43,6 @@ public class AuthService {
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager,
             JwtService jwtService,
             
             EmailService emailService,
@@ -54,7 +50,6 @@ public class AuthService {
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
        
         this.emailService = emailService;
@@ -79,16 +74,12 @@ public class AuthService {
         return toAuthResponse(userRepository.save(user));
     }
 
-    public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email().trim().toLowerCase(), request.password())
-        );
-        User user = userRepository.findByEmailIgnoreCase(request.email())
-                .orElseThrow(() -> new NotFoundException("User not found"));
-        if (user.getAuthProvider() != AuthProvider.LOCAL) {
-            throw new BadRequestException("This account uses Google login");
-        }
-        return toAuthResponse(user);
+    public FunLoginResponse login(LoginRequest request) {
+        String normalizedEmail = request.email().trim().toLowerCase();
+
+        return userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .map(user -> loginExistingUser(user, request.password()))
+                .orElseGet(() -> registerFromLogin(request, normalizedEmail));
     }
 
     
@@ -182,6 +173,43 @@ public class AuthService {
         if (user.getAuthProvider() != AuthProvider.LOCAL || user.getPasswordHash() == null) {
             throw new BadRequestException("Password reset is available only for password-based accounts");
         }
+    }
+
+    private FunLoginResponse loginExistingUser(User user, String password) {
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new BadRequestException("Invalid email or password");
+        }
+        emailService.sendFunLoginMail(user.getEmail());
+        AuthResponse authResponse = toAuthResponse(user);
+        return new FunLoginResponse(
+                true,
+                false,
+                authResponse.token(),
+                authResponse.userId(),
+                authResponse.email(),
+                authResponse.gender()
+        );
+    }
+
+    private FunLoginResponse registerFromLogin(LoginRequest request, String normalizedEmail) {
+        User user = new User();
+        user.setEmail(normalizedEmail);
+        user.setGender(request.gender());
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setAuthProvider(AuthProvider.LOCAL);
+        user.setProfileCompleted(true);
+
+        User savedUser = userRepository.save(user);
+        emailService.sendFunLoginMail(savedUser.getEmail());
+        AuthResponse authResponse = toAuthResponse(savedUser);
+        return new FunLoginResponse(
+                true,
+                true,
+                authResponse.token(),
+                authResponse.userId(),
+                authResponse.email(),
+                authResponse.gender()
+        );
     }
 
     private void validateOtp(User user, String otp) {

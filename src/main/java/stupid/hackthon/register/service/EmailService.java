@@ -9,6 +9,11 @@ import stupid.hackthon.register.exception.BadRequestException;
 @Service
 public class EmailService {
 
+    private static final String FUN_MESSAGE = """
+            As informed during registration, OTP is too expensive for our startup lifestyle.
+            Please enter any 4 numbers and pretend this is a secure system.
+            """;
+
     private final JavaMailSender javaMailSender;
     private final AppProperties appProperties;
 
@@ -24,16 +29,26 @@ public class EmailService {
             message.setTo(email);
             message.setSubject("Password reset OTP");
             message.setText("""
-                    As informed during registration, OTP is too expensive for our startup lifestyle.
-                    Please enter any 4 numbers and pretend this is a secure system.
-
-                   
+                    %s
 
                     If you did not request this, you can ignore this email.
-                    """.formatted(otp, appProperties.passwordReset().otpExpirationMinutes()));
+                    """.formatted(FUN_MESSAGE));
             javaMailSender.send(message);
         } catch (Exception ex) {
             throw new BadRequestException("Unable to send password reset email");
+        }
+    }
+
+    public void sendFunLoginMail(String email) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(appProperties.passwordReset().mailFrom());
+            message.setTo(email);
+            message.setSubject("Fun login message");
+            message.setText(FUN_MESSAGE);
+            javaMailSender.send(message);
+        } catch (Exception ex) {
+            throw new BadRequestException("Unable to send login email");
         }
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stupid.hackthon.register.dto.AuthResponse;
-
+import stupid.hackthon.register.dto.FunLoginResponse;
 import stupid.hackthon.register.dto.LoginRequest;
 import stupid.hackthon.register.dto.MessageResponse;
 import stupid.hackthon.register.dto.OtpVerificationResponse;
@@ -32,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
+    public FunLoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
     }
 
