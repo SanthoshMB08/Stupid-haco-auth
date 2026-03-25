@@ -45,9 +45,6 @@ public class User {
     @Column(nullable = false)
     private AuthProvider authProvider;
 
-    @Column(unique = true)
-    private String googleSubject;
-
     @Column(nullable = false)
     private boolean profileCompleted;
 
@@ -136,14 +133,6 @@ public class User {
 
     public void setAuthProvider(AuthProvider authProvider) {
         this.authProvider = authProvider;
-    }
-
-    public String getGoogleSubject() {
-        return googleSubject;
-    }
-
-    public void setGoogleSubject(String googleSubject) {
-        this.googleSubject = googleSubject;
     }
 
     public boolean isProfileCompleted() {

@@ -1,6 +1,6 @@
 package stupid.hackthon.register.service;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -141,6 +141,7 @@ public class AuthService {
         User user = userRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new NotFoundException("No user found for this email"));
         ensureLocalPasswordAccount(user);
+        ensureOtpWasVerified(user);
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         clearPasswordResetState(user);
@@ -197,6 +198,19 @@ public class AuthService {
         }
     }
 
+    private void ensureOtpWasVerified(User user) {
+        if (user.getPasswordResetVerifiedAt() == null) {
+            throw new BadRequestException("OTP verification required before password reset");
+        }
+        Instant verifiedUntil = user.getPasswordResetVerifiedAt()
+                .plus(appProperties.passwordReset().otpVerifiedWindowMinutes(), ChronoUnit.MINUTES);
+        if (verifiedUntil.isBefore(Instant.now())) {
+            clearPasswordResetState(user);
+            userRepository.save(user);
+            throw new BadRequestException("Verified OTP session has expired");
+        }
+    }
+
     private void clearPasswordResetState(User user) {
         user.setPasswordResetOtpHash(null);
         user.setPasswordResetOtpExpiresAt(null);
@@ -208,30 +222,8 @@ public class AuthService {
         return Integer.toString(otp);
     }
 
-    private User mergeGoogleIdentity(User user, String subject, String fullName) {
-        if (user.getAuthProvider() == AuthProvider.LOCAL && user.getPasswordHash() != null) {
-            throw new BadRequestException("This email is already registered with password login");
-        }
-        if (user.getGoogleSubject() != null && !subject.equals(user.getGoogleSubject())) {
-            throw new BadRequestException("Email is already linked to another Google account");
-        }
-        user.setGoogleSubject(subject);
-        if ((user.getName() == null || user.getName().isBlank()) && fullName != null && !fullName.isBlank()) {
-            user.setName(fullName);
-        }
-        user.setAuthProvider(AuthProvider.GOOGLE);
-        return user;
-    }
-
-    private User createGoogleUser(String email, String subject, String fullName) {
-        User user = new User();
-        user.setEmail(email);
-        user.setName(fullName);
-        user.setAuthProvider(AuthProvider.GOOGLE);
-        user.setGoogleSubject(subject);
-        user.setProfileCompleted(false);
-        return user;
-    }
+   
+    
 
     private AuthResponse toAuthResponse(User user) {
         AppUserPrincipal principal = new AppUserPrincipal(user);
