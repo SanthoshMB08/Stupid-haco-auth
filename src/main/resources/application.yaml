@@ -18,7 +18,7 @@ spring:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:santhoshmb08@gmail.com}
-    password: ${MAIL_PASSWORD:ykvv oyrl kgae gqfu}
+    password: ${MAIL_PASSWORD:ykvvoyrlkgaegqfu}
     properties:
       mail:
         smtp:
@@ -38,4 +38,4 @@ app:
   password-reset:
     otp-expiration-minutes: ${APP_PASSWORD_RESET_OTP_EXPIRATION_MINUTES:10}
     otp-verified-window-minutes: ${APP_PASSWORD_RESET_VERIFIED_WINDOW_MINUTES:10}
-    mail-from: ${APP_PASSWORD_RESET_MAIL_FROM:${MAIL_USERNAME:no-reply@example.com}}
+    mail-from: ${APP_PASSWORD_RESET_MAIL_FROM:${MAIL_USERNAME:santhoshmb08@gmail.com}}
